@@ -16,6 +16,21 @@ w, h = len(states), moveCount + 1
 prior_probabilities = [[0 for x in range(w)] for y in range(h)]
 
 
+def calculate_repeat_move_coefficient(jumpCount, repeatCount):
+    # tekrarli permutasyon
+    return calculate_factorial(jumpCount + repeatCount) / (
+        calculate_factorial(jumpCount) * calculate_factorial(repeatCount))
+
+
+def calculate_factorial(num):
+    if num == 1:
+        return 1
+    elif num == 0:
+        return 1
+    else:
+        return num * (calculate_factorial(num - 1))
+
+
 def get_state_observation_prob(state, observation):
     if state == 0 and observation == 0:
         return 0.7  # observing g when state is k
@@ -32,15 +47,18 @@ def get_state_observation_prob(state, observation):
 
 
 def calculate_evidence_probability(state, currentMove, observation):
-    if currentMove < 2:
-        return get_state_observation_prob(state, observation)
-    else:
-        return 8
+    prob = 0
+    i = 0
+    while i < len(states):
+        tmp = prior_probabilities[currentMove][state] * get_state_observation_prob(states[state], observation)
+        prob = prob + tmp
+        i = i + 1
+    return prob
 
 
 def calculate_state_probability_on_observation(state, observation, currentMove):
     # Applying bayes
-    p_likelihood = get_state_observation_prob(state, observation)
+    p_likelihood = get_state_observation_prob(states[state], observation)
     p_prior = calculate_prior_probability(state, currentMove)
     p_evidence = calculate_evidence_probability(state, currentMove, observation)
     return p_likelihood * p_prior / p_evidence
@@ -66,11 +84,22 @@ def calculate_prior_probability(state, currentMove):
             prior_probabilities[1][i] = 0
             i = i + 1
         if state > currentMove:
-            return 0
+            prior_probabilities[currentMove][state] = 0
+            return prior_probabilities[currentMove][state]
         elif state == currentMove:
-            return (state + 1) ** p_jump
+            prob = (state + 1) ** p_jump
+            prior_probabilities[currentMove][state] = prob
+            return prior_probabilities[currentMove][state]
         else:
-            return currentMove ** p_repeat * (state - currentMove) ** p_jump
+            repeat = currentMove - state
+            jump = currentMove - repeat
+            prob = p_repeat ** repeat * p_jump ** jump * calculate_repeat_move_coefficient(repeat,
+                                                                                           jump)  # more than one way
+            #  to reach that state while jumping and repeating
+            prior_probabilities[currentMove][state] = prob
+            return prior_probabilities[currentMove][state]
 
 
+# print(calculate_state_probability_on_observation(1, 0, 1))
 print(calculate_state_probability_on_observation(1, 0, 2))
+# print(calculate_state_probability_on_observation(2, 0, 2))
