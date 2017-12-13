@@ -16,6 +16,8 @@ w, h = len(states), moveCount + 1
 prior_probabilities = [[0 for x in range(w)] for y in range(h)]
 
 
+# test
+
 def normalizeResultsForMove(move):
     st = 0
     total = 0
