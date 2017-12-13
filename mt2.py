@@ -2,7 +2,9 @@
 # observations => 0 = g , 1 = k, 2 = w
 
 states = [0, 0, 1, 0, 1, 1, 0, 1, 1, 0]
-observations = [0, 0, 0, 2, 0, 0]
+# observations = [0, 0, 0, 1, 0, 0, 1, 1, 1, 2, 0, 0, 2]
+observations = [0, 0, 0, 1, 0, 0, 1, 1, 1]
+# observations = [0, 0, 0, 2, 0, 0]
 p_jump = 0.9  # jumping to next state prob
 p_repeat = 0.1  # repeating same state prob
 moveCount = len(observations)  # How many moves we will observe
@@ -12,6 +14,18 @@ currentMove = 1  # index of current move
 # Initially they are all zero.
 w, h = len(states), moveCount + 1
 prior_probabilities = [[0 for x in range(w)] for y in range(h)]
+
+
+def normalizeResults():
+    st = 0
+    total = 0
+    while st < len(states):
+        total = total + prior_probabilities[len(observations)][st]
+        st = st + 1
+    st = 0
+    while st < len(states):
+        prior_probabilities[len(observations)][st] = prior_probabilities[len(observations)][st] * 100 / total
+        st = st + 1
 
 
 # Returns the probability of reaching current state from previous state using jump and repeat probabilities
@@ -126,6 +140,8 @@ while currentMove <= len(observations):
         st = st + 1
     currentMove = currentMove + 1
     st = 0
+
+normalizeResults()
 
 # print results
 print("After observations, probability distribution of the states are:")
