@@ -3,7 +3,7 @@
 
 states = [0, 0, 1, 0, 1, 1, 0, 1, 1, 0]
 # observations = [0, 0, 0, 1, 0, 0, 1, 1, 1, 2, 0, 0, 2]
-observations = [0, 0, 0, 1, 0, 0, 1, 1, 1]
+observations = [0, 0, 0, 1, 0, 0, 1, 1, 1, 2]
 # observations = [0, 0, 0, 2, 0, 0]
 p_jump = 0.9  # jumping to next state prob
 p_repeat = 0.1  # repeating same state prob
@@ -16,16 +16,17 @@ w, h = len(states), moveCount + 1
 prior_probabilities = [[0 for x in range(w)] for y in range(h)]
 
 
-def normalizeResults():
+def normalizeResultsForMove(move):
     st = 0
     total = 0
     while st < len(states):
-        total = total + prior_probabilities[len(observations)][st]
+        total = total + prior_probabilities[move][st]
         st = st + 1
-    st = 0
-    while st < len(states):
-        prior_probabilities[len(observations)][st] = prior_probabilities[len(observations)][st] * 100 / total
-        st = st + 1
+    if total != 0:
+        st = 0
+        while st < len(states):
+            prior_probabilities[move][st] = prior_probabilities[move][st] * 100 / total
+            st = st + 1
 
 
 # Returns the probability of reaching current state from previous state using jump and repeat probabilities
@@ -45,7 +46,7 @@ def get_state_transition_probability(prevStateIndex, currentStateIndex):
 def calculate_repeat_move_coefficient(jumpCount, repeatCount):
     # tekrarli permutasyon
     return calculate_factorial(jumpCount + repeatCount) / (
-        calculate_factorial(jumpCount) * calculate_factorial(repeatCount))
+            calculate_factorial(jumpCount) * calculate_factorial(repeatCount))
 
 
 def calculate_factorial(num):
@@ -84,6 +85,8 @@ def calculate_evidence_probability(currentMove, observation):
 
 def calculate_state_probability_on_observation(state, observation, currentMove):
     # Applying bayes
+    if currentMove == 10 and state == 7:
+        print("makaroni")
     p_likelihood = get_state_observation_prob(states[state], observation)
     p_prior = calculate_prior_probability(currentMove, state)
     p_evidence = calculate_evidence_probability(currentMove, observation)
@@ -138,10 +141,14 @@ while currentMove <= len(observations):
         posterior_prob = calculate_state_probability_on_observation(st, observations[currentMove - 1], currentMove)
         prior_probabilities[currentMove][st] = posterior_prob
         st = st + 1
-    currentMove = currentMove + 1
-    st = 0
 
-normalizeResults()
+    st = 0
+    normalizeResultsForMove(currentMove)
+    currentMove = currentMove + 1
+    if currentMove == len(observations):
+        print("debug")
+
+normalizeResultsForMove(len(observations))
 
 # print results
 print("After observations, probability distribution of the states are:")
@@ -149,8 +156,6 @@ st = 0
 while st < len(states):
     print("Probability of state#", st, prior_probabilities[len(observations)][st])
     st = st + 1
-
-
 
 # print(calculate_state_probability_on_observation(0, 0, 1))
 # print(calculate_state_probability_on_observation(1, 0, 2))
